@@ -17,21 +17,33 @@ class TokenManager(context: Context) {
         context.getSharedPreferences("token_prefs", Context.MODE_PRIVATE)
 
     fun saveToken(token: String) {
-        val expirationTime = System.currentTimeMillis() + (20 * 1000L) // Expira en 15 segundos
+        val expirationTime = System.currentTimeMillis() + (20 * 1000L) // Expira en 20 segundos
         prefs.edit().putString("auth_token", token).apply()
         prefs.edit().putLong("expiration_time", expirationTime).apply()
+        // Log para confirmar la hora de expiración
+        android.util.Log.d("TokenManager", "Token guardado: $token")
+
+        android.util.Log.d("TokenManager", "Token guardado. Expira en: $expirationTime")
     }
 
     fun getToken(): String? {
         val token = prefs.getString("auth_token", null)
         val expirationTime = prefs.getLong("expiration_time", 0L)
-
         return if (System.currentTimeMillis() < expirationTime) token else null
     }
 
     fun isTokenValid(): Boolean {
+
+        android.util.Log.d("TokenManager", "Token isTokenValid funcion llamada")
+
         val expirationTime = prefs.getLong("expiration_time", 0L)
         return System.currentTimeMillis() < expirationTime
+    }
+
+    fun getExpirationTime(): Long {
+        android.util.Log.d("TokenManager", "Token getExpirationTime funcion llamada")
+
+        return prefs.getLong("expiration_time", 0L)
     }
 
     fun clearToken() {
@@ -39,7 +51,6 @@ class TokenManager(context: Context) {
         prefs.edit().remove("expiration_time").apply()
     }
 }
-
 
 /*
 class TokenManager(context: Context) {

@@ -1,21 +1,18 @@
 package com.cooperativa.app.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cooperativa.app.data.local.TokenManager
 import com.cooperativa.app.data.models.LoginResponse
 import com.cooperativa.app.data.remote.AuthRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import retrofit2.Response
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import retrofit2.Response
 
 data class LoginState(
     val username: String = "",
@@ -39,16 +36,13 @@ class AuthViewModel(
     private val _tokenExpired = MutableStateFlow(false)
     val tokenExpired: StateFlow<Boolean> = _tokenExpired
 
+    // Referencia al Job de verificación del token para evitar fugas
+    private var tokenCheckJob: Job? = null
+
     init {
-        // Verificación del token en segundo plano
-        viewModelScope.launch(Dispatchers.IO) {
-            while (tokenManager.isTokenValid()) {
-                delay(5000)
-            }
-            // Cuando el token expire:
-            tokenManager.clearToken()
-            Log.d("TokenExpired", "⚠️ Token ha expirado en ViewModel, cambiando estado")
-            _tokenExpired.value = true
+        // Si ya existe un token válido (por ejemplo, al reiniciar la app), iniciamos la verificación
+        if (tokenManager.isTokenValid()) {
+            startTokenCheck()
         }
     }
 
@@ -77,6 +71,8 @@ class AuthViewModel(
                             errorMessage = null
                         )
                         onLoginSuccess()
+                        // Inicia la verificación del token tras guardar el token nuevo
+                        startTokenCheck()
                     } else {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
@@ -94,4 +90,23 @@ class AuthViewModel(
             }
         }
     }
+
+    private fun startTokenCheck() {
+        // Cancelamos cualquier verificación previa para evitar fugas de memoria
+        tokenCheckJob?.cancel()
+        tokenCheckJob = viewModelScope.launch(Dispatchers.IO) {
+            while (tokenManager.isTokenValid()) {
+                // (Opcional) Puedes dejar un log de depuración aquí:
+                // Log.d("TokenCheck", "Token válido. Expira a: ${tokenManager.getExpirationTime()}")
+                delay(5000)
+            }
+            tokenManager.clearToken()
+            // Actualizamos el estado para limpiar el token en la UI
+            _uiState.value = _uiState.value.copy(token = null)
+            // Marcamos que el token ha expirado para disparar la navegación
+            _tokenExpired.value = true
+        }
+    }
+
+    fun isAuthenticated(): Boolean = tokenManager.isTokenValid()
 }
