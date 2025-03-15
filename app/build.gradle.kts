@@ -44,8 +44,8 @@ android {
     }
 }
 
-dependencies {
 
+dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -56,24 +56,24 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons)
 
-
-
-    // Librerías para Retrofit (consumo de API)
+    // ✅ Retrofit
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
 
+    // ✅ Room (Base de datos)
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
 
+    // ✅ Hilt (Inyección de dependencias)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
+    // ✅ Jetpack Compose Navigation
     implementation(libs.compose.navigation)
 
-    implementation(libs.androidx.ui)
-
-    implementation(libs.androidx.material.icons.extended)
-
+    // ✅ DataStore Preferences (Añadido correctamente)
+    implementation(libs.datastore.preferences)
+    implementation(libs.datastore.core)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

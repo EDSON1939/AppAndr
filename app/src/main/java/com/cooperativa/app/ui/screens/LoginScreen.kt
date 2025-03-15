@@ -1,5 +1,6 @@
 package com.cooperativa.app.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,14 +23,24 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.cooperativa.app.viewmodel.AuthViewModel
+import com.cooperativa.app.viewmodel.LoginState
+
 
 @Composable
-fun LoginScreen() {
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+fun LoginScreen(authViewModel: AuthViewModel = viewModel(), onLoginSuccess: () -> Unit = {}) {
+    val uiState by authViewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState.token) {
+        if (uiState.token != null) {
+            onLoginSuccess()
+        }
+    }
+
     var passwordVisible by remember { mutableStateOf(false) }
     var isPasswordIncorrect by remember { mutableStateOf(false) }
-    val isButtonEnabled = password.isNotEmpty() // ✅ Solo habilita el botón si hay contraseña
+
 
     BoxWithConstraints(
         modifier = Modifier
@@ -62,8 +73,8 @@ fun LoginScreen() {
 
                 // Campo de usuario
                 OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
+                    value = uiState.username,
+                    onValueChange = { authViewModel.onUsernameChanged(it) }, // ✅ Usa el ViewModel
                     label = { Text("Usuario") },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
@@ -78,8 +89,8 @@ fun LoginScreen() {
 
                 // Campo de contraseña con validación
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = uiState.password,
+                    onValueChange = { authViewModel.onPasswordChanged(it) }, // ✅ Usa el ViewModel
                     label = { Text("Contraseña") },
                     singleLine = true,
                     isError = isPasswordIncorrect, // Se marca en rojo si es incorrecta
@@ -110,7 +121,7 @@ fun LoginScreen() {
                 )
 
                 // Mensaje de error si la contraseña es incorrecta
-                if (isPasswordIncorrect) {
+                if (uiState.isPasswordIncorrect) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(0.9f)
@@ -138,15 +149,14 @@ fun LoginScreen() {
                 // Botón de Iniciar Sesión (Deshabilitado si no hay contraseña)
                 Button(
                     onClick = {
-                        // Simula la validación de contraseña
-                        isPasswordIncorrect = password != "12345"
+                        authViewModel.login(onLoginSuccess) // ✅ Pasamos el callback correctamente
                     },
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp), // Bordes redondeados en el botón
-                    colors = ButtonDefaults.buttonColors(containerColor = if (isButtonEnabled) Color.Blue else Color.Gray),
-                    enabled = isButtonEnabled // ✅ Solo habilitado si hay texto en la contraseña
+                    colors = ButtonDefaults.buttonColors(containerColor = if (uiState.password.isNotEmpty()) Color.Blue else Color.Gray),
+                    enabled = uiState.password.isNotEmpty()
                 ) {
                     Text(text = "Iniciar Sesión", fontSize = 18.sp, color = Color.White)
                 }
