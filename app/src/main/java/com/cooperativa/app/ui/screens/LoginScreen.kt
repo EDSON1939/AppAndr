@@ -1,51 +1,45 @@
 package com.cooperativa.app.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import com.cooperativa.app.viewmodel.AuthViewModel
-import com.cooperativa.app.viewmodel.LoginState
-
 
 @Composable
-fun LoginScreen(authViewModel: AuthViewModel = viewModel(), onLoginSuccess: () -> Unit = {}) {
+fun LoginScreen(authViewModel: AuthViewModel, onLoginSuccess: () -> Unit = {}) {
     val uiState by authViewModel.uiState.collectAsState()
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(uiState.token) {
-        if (uiState.token != null) {
-            onLoginSuccess()
-        }
+        if (uiState.token != null) onLoginSuccess()
     }
 
     var passwordVisible by remember { mutableStateOf(false) }
-    var isPasswordIncorrect by remember { mutableStateOf(false) }
-
 
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
     ) {
         val screenHeight = maxHeight
@@ -56,58 +50,62 @@ fun LoginScreen(authViewModel: AuthViewModel = viewModel(), onLoginSuccess: () -
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(screenHeight * 0.15f)) // Espaciado dinámico arriba
+            Spacer(modifier = Modifier.height(screenHeight * 0.15f))
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Título
                 Text(
                     text = "Iniciar Sesión",
-                    fontSize = if (screenWidth < 400.dp) 22.sp else 26.sp, // Tamaño dinámico
+                    fontSize = if (screenWidth < 400.dp) 22.sp else 26.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // Campo de usuario
                 OutlinedTextField(
                     value = uiState.username,
-                    onValueChange = { authViewModel.onUsernameChanged(it) }, // ✅ Usa el ViewModel
+                    onValueChange = { authViewModel.onUsernameChanged(it) },
                     label = { Text("Usuario") },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Blue,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = Color.Gray
                     ),
-                    modifier = Modifier.fillMaxWidth(0.9f) // 90% del ancho
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Campo de contraseña con validación
                 OutlinedTextField(
                     value = uiState.password,
-                    onValueChange = { authViewModel.onPasswordChanged(it) }, // ✅ Usa el ViewModel
+                    onValueChange = { authViewModel.onPasswordChanged(it) },
                     label = { Text("Contraseña") },
                     singleLine = true,
-                    isError = isPasswordIncorrect, // Se marca en rojo si es incorrecta
-                    shape = RoundedCornerShape(12.dp), // Bordes redondeados
+                    isError = uiState.isPasswordIncorrect,
+                    shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = if (isPasswordIncorrect) Color.Red else Color.Blue,
-                        unfocusedBorderColor = if (isPasswordIncorrect) Color.Red else Color.Gray,
-                        cursorColor = Color.Blue,
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black,
-                        focusedLabelColor = if (isPasswordIncorrect) Color.Red else Color.Blue,
-                        unfocusedLabelColor = if (isPasswordIncorrect) Color.Red else Color.Gray
+                        focusedBorderColor = if (uiState.isPasswordIncorrect) Color.Red else MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = if (uiState.isPasswordIncorrect) Color.Red else Color.Gray,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedLabelColor = if (uiState.isPasswordIncorrect) Color.Red else MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = if (uiState.isPasswordIncorrect) Color.Red else Color.Gray
                     ),
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
                     ),
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -120,7 +118,6 @@ fun LoginScreen(authViewModel: AuthViewModel = viewModel(), onLoginSuccess: () -
                     modifier = Modifier.fillMaxWidth(0.9f)
                 )
 
-                // Mensaje de error si la contraseña es incorrecta
                 if (uiState.isPasswordIncorrect) {
                     Row(
                         modifier = Modifier
@@ -130,13 +127,13 @@ fun LoginScreen(authViewModel: AuthViewModel = viewModel(), onLoginSuccess: () -
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Info,
-                            contentDescription = "Error",
+                            contentDescription = "Error de contraseña",
                             tint = Color.Red,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Contraseña incorrecta. Verifica tu contraseña nuevamente.",
+                            text = "Contraseña incorrecta. Verifica tu contraseña.",
                             color = Color.Red,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Start
@@ -144,27 +141,25 @@ fun LoginScreen(authViewModel: AuthViewModel = viewModel(), onLoginSuccess: () -
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp)) // Más separación del botón
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // Botón de Iniciar Sesión (Deshabilitado si no hay contraseña)
                 Button(
-                    onClick = {
-                        authViewModel.login(onLoginSuccess) // ✅ Pasamos el callback correctamente
-                    },
+                    onClick = { authViewModel.login(onLoginSuccess) },
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
                         .height(50.dp),
-                    shape = RoundedCornerShape(12.dp), // Bordes redondeados en el botón
-                    colors = ButtonDefaults.buttonColors(containerColor = if (uiState.password.isNotEmpty()) Color.Blue else Color.Gray),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (uiState.password.isNotEmpty()) MaterialTheme.colorScheme.primary else Color.Gray
+                    ),
                     enabled = uiState.password.isNotEmpty()
                 ) {
                     Text(text = "Iniciar Sesión", fontSize = 18.sp, color = Color.White)
                 }
             }
 
-            Spacer(modifier = Modifier.height(screenHeight * 0.1f)) // Más espacio en pantallas grandes
+            Spacer(modifier = Modifier.height(screenHeight * 0.1f))
 
-            // Nombre "CoopApp" en la parte inferior
             Text(
                 text = "CoopApp",
                 fontSize = 16.sp,
@@ -173,14 +168,9 @@ fun LoginScreen(authViewModel: AuthViewModel = viewModel(), onLoginSuccess: () -
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp) // Espacio inferior
+                    .padding(bottom = 16.dp)
             )
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewLoginScreen() {
-    LoginScreen()
-}

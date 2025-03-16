@@ -1,94 +1,88 @@
 package com.cooperativa.app.data.local
 
 import android.content.Context
-import android.content.SharedPreferences
-import androidx.datastore.preferences.core.edit
+import android.util.Base64
+import android.util.Log
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
+import org.json.JSONObject
 
-private val Context.dataStore by preferencesDataStore(name = "user_prefs")
+// Extensión para crear DataStore en el Context
+val Context.dataStore by preferencesDataStore(name = "token_prefs")
 
+class TokenManager(private val context: Context) {
 
-class TokenManager(context: Context) {
-
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences("token_prefs", Context.MODE_PRIVATE)
-
-    fun saveToken(token: String) {
-        val expirationTime = System.currentTimeMillis() + (20 * 1000L) // Expira en 20 segundos
-        prefs.edit().putString("auth_token", token).apply()
-        prefs.edit().putLong("expiration_time", expirationTime).apply()
-        // Log para confirmar la hora de expiración
-        android.util.Log.d("TokenManager", "Token guardado: $token")
-
-        android.util.Log.d("TokenManager", "Token guardado. Expira en: $expirationTime")
+    private object PreferencesKeys {
+        val AUTH_TOKEN = stringPreferencesKey("auth_token")
+        val EXPIRATION_TIME = longPreferencesKey("expiration_time")
     }
 
-    fun getToken(): String? {
-        val token = prefs.getString("auth_token", null)
-        val expirationTime = prefs.getLong("expiration_time", 0L)
-        return if (System.currentTimeMillis() < expirationTime) token else null
+    // Guarda el token y su tiempo de expiración en DataStore.
+    suspend fun saveToken(token: String) {
+
+
+        val expirationTime = extractExpirationTime(token)
+        Log.d("TokenCheck", "Token Time: $expirationTime ")
+
+        //val expirationTime = System.currentTimeMillis() + (20 * 1000L) // Expira en 20 segundos (para pruebas)
+        expirationTime?.let {
+            context.dataStore.edit { preferences ->
+                preferences[PreferencesKeys.AUTH_TOKEN] = token
+                preferences[PreferencesKeys.EXPIRATION_TIME] = it
+            }
+        } ?: run {
+            Log.e("TokenError", "❌ No se pudo extraer el tiempo de expiración del token.")
+        }
     }
 
-    fun isTokenValid(): Boolean {
+    private fun extractExpirationTime(token: String): Long? {
+        return try {
+            val parts = token.split(".")
+            if (parts.size < 3) return null  // El token debe tener 3 partes (header, payload, signature)
 
-        android.util.Log.d("TokenManager", "Token isTokenValid funcion llamada")
+            val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))  // Decodifica el payload
+            val jsonObject = JSONObject(payload)
+            val exp = jsonObject.getLong("exp")  // Obtiene el campo "exp" (segundos desde 1970)
 
-        val expirationTime = prefs.getLong("expiration_time", 0L)
-        return System.currentTimeMillis() < expirationTime
+            exp * 1000  // Convierte segundos a milisegundos
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
-    fun getExpirationTime(): Long {
-        android.util.Log.d("TokenManager", "Token getExpirationTime funcion llamada")
-
-        return prefs.getLong("expiration_time", 0L)
-    }
-
-    fun clearToken() {
-        prefs.edit().remove("auth_token").apply()
-        prefs.edit().remove("expiration_time").apply()
-    }
-}
-
-/*
-class TokenManager(context: Context) {
-    private val sharedPreferences: SharedPreferences =
-        context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-    private val prefs: SharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-
-    companion object {
-        private const val TOKEN_KEY = "auth_token"
-        private const val EXPIRATION_KEY = "token_expiration"
-    }
-
-    fun saveToken(token: String, expirationTime: Long) {
-        val editor = prefs.edit()
-        editor.putString("token", token)
-        editor.putLong("expiration", System.currentTimeMillis() + expirationTime) // 🔹 Guarda tiempo de expiración
-        editor.apply()
-    }
-
-    fun getToken(): String? {
-        return if (isTokenValid()) {
-            prefs.getString("token", null)
+    // Recupera el token si aún es válido, de lo contrario devuelve null.
+    suspend fun getToken(): String? {
+        val preferences = context.dataStore.data.first()
+        val expirationTime = preferences[PreferencesKeys.EXPIRATION_TIME] ?: 0L
+        return if (System.currentTimeMillis() < expirationTime) {
+            preferences[PreferencesKeys.AUTH_TOKEN]
         } else {
             null
         }
     }
 
-    fun isTokenValid(): Boolean {
-        val expiration = prefs.getLong("expiration", 0)
-        return System.currentTimeMillis() < expiration // ✅ Verifica si aún no ha expirado
+    // Devuelve true si el token es válido, false si ya expiró o no existe.
+    suspend fun isTokenValid(): Boolean {
+        val preferences = context.dataStore.data.first()
+        val expirationTime = preferences[PreferencesKeys.EXPIRATION_TIME] ?: 0L
+        return System.currentTimeMillis() < expirationTime
     }
 
-    fun getExpirationTime(): Long {
-        return sharedPreferences.getLong(EXPIRATION_KEY, 0)
+    // Obtiene el tiempo de expiración guardado.
+    suspend fun getExpirationTime(): Long {
+        val preferences = context.dataStore.data.first()
+        return preferences[PreferencesKeys.EXPIRATION_TIME] ?: 0L
     }
 
-
-    fun clearToken() {
-        prefs.edit().clear().apply()
+    // Limpia el token y la expiración de DataStore.
+    suspend fun clearToken() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.AUTH_TOKEN)
+            preferences.remove(PreferencesKeys.EXPIRATION_TIME)
+        }
     }
-}*/
+}

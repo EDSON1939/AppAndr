@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 
+
 data class LoginState(
     val username: String = "",
     val password: String = "",
@@ -40,9 +41,10 @@ class AuthViewModel(
     private var tokenCheckJob: Job? = null
 
     init {
-        // Si ya existe un token válido (por ejemplo, al reiniciar la app), iniciamos la verificación
-        if (tokenManager.isTokenValid()) {
-            startTokenCheck()
+        viewModelScope.launch(Dispatchers.IO) {
+            if (tokenManager.isTokenValid()) {
+                startTokenCheck()
+            }
         }
     }
 
@@ -64,6 +66,10 @@ class AuthViewModel(
                     if (response != null && response.isSuccessful && response.body() != null) {
                         val token = response.body()!!.token
                         tokenManager.saveToken(token)
+
+                        // Reiniciamos el estado de expiración al iniciar sesión exitosamente
+                        _tokenExpired.value = false
+
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
                             token = token,
@@ -71,7 +77,7 @@ class AuthViewModel(
                             errorMessage = null
                         )
                         onLoginSuccess()
-                        // Inicia la verificación del token tras guardar el token nuevo
+                        // Inicia (o reinicia) la verificación del token tras guardar el token nuevo
                         startTokenCheck()
                     } else {
                         _uiState.value = _uiState.value.copy(
@@ -96,17 +102,15 @@ class AuthViewModel(
         tokenCheckJob?.cancel()
         tokenCheckJob = viewModelScope.launch(Dispatchers.IO) {
             while (tokenManager.isTokenValid()) {
-                // (Opcional) Puedes dejar un log de depuración aquí:
-                // Log.d("TokenCheck", "Token válido. Expira a: ${tokenManager.getExpirationTime()}")
+                // Puedes agregar un log de depuración aquí
                 delay(5000)
             }
             tokenManager.clearToken()
-            // Actualizamos el estado para limpiar el token en la UI
             _uiState.value = _uiState.value.copy(token = null)
-            // Marcamos que el token ha expirado para disparar la navegación
             _tokenExpired.value = true
         }
     }
 
-    fun isAuthenticated(): Boolean = tokenManager.isTokenValid()
+    // Esta función ya no se usa directamente en la UI (es suspend) pero se deja para referencia
+    suspend fun isAuthenticated(): Boolean = tokenManager.isTokenValid()
 }
