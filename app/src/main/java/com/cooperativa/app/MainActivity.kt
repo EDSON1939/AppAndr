@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val tokenManager = TokenManager(applicationContext)
         setContent {
-            CooperativaAppTheme(dynamicColor = false) {
+            CooperativaAppTheme {
                 // Creamos un único NavController para toda la app.
                 val navController = rememberNavController()
                 val authRepository = AuthRepository(RetrofitInstance.api)

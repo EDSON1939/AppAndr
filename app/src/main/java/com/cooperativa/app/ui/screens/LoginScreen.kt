@@ -51,7 +51,6 @@ fun LoginScreen(authViewModel: AuthViewModel, onLoginSuccess: () -> Unit = {}) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(screenHeight * 0.15f))
-
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -63,7 +62,6 @@ fun LoginScreen(authViewModel: AuthViewModel, onLoginSuccess: () -> Unit = {}) {
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
-
                 OutlinedTextField(
                     value = uiState.username,
                     onValueChange = { authViewModel.onUsernameChanged(it) },
@@ -76,13 +74,11 @@ fun LoginScreen(authViewModel: AuthViewModel, onLoginSuccess: () -> Unit = {}) {
                     ),
                     modifier = Modifier.fillMaxWidth(0.9f),
                     keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Next
                     )
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 OutlinedTextField(
                     value = uiState.password,
                     onValueChange = { authViewModel.onPasswordChanged(it) },
@@ -101,8 +97,8 @@ fun LoginScreen(authViewModel: AuthViewModel, onLoginSuccess: () -> Unit = {}) {
                     ),
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(
                         onDone = { focusManager.clearFocus() }
@@ -117,7 +113,6 @@ fun LoginScreen(authViewModel: AuthViewModel, onLoginSuccess: () -> Unit = {}) {
                     },
                     modifier = Modifier.fillMaxWidth(0.9f)
                 )
-
                 if (uiState.isPasswordIncorrect) {
                     Row(
                         modifier = Modifier
@@ -140,9 +135,7 @@ fun LoginScreen(authViewModel: AuthViewModel, onLoginSuccess: () -> Unit = {}) {
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(32.dp))
-
                 Button(
                     onClick = { authViewModel.login(onLoginSuccess) },
                     modifier = Modifier
@@ -157,9 +150,7 @@ fun LoginScreen(authViewModel: AuthViewModel, onLoginSuccess: () -> Unit = {}) {
                     Text(text = "Iniciar Sesión", fontSize = 18.sp, color = Color.White)
                 }
             }
-
             Spacer(modifier = Modifier.height(screenHeight * 0.1f))
-
             Text(
                 text = "CoopApp",
                 fontSize = 16.sp,
@@ -173,4 +164,3 @@ fun LoginScreen(authViewModel: AuthViewModel, onLoginSuccess: () -> Unit = {}) {
         }
     }
 }
-

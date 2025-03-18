@@ -1,88 +1,82 @@
 package com.cooperativa.app.ui.screens
 
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.cooperativa.app.data.models.Cuenta
 import com.cooperativa.app.data.models.TipoCuenta
-import com.cooperativa.app.navigation.AppNavigator
-import com.cooperativa.app.ui.components.BottomNavigationBar
-import com.cooperativa.app.ui.components.TransaccionItem
 import com.cooperativa.app.viewmodel.CuentasViewModel
-import com.cooperativa.app.ui.components.CuentaCard
-import com.cooperativa.app.ui.components.CuentaPrincipalCard
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.cooperativa.app.ui.components.AccountCarousel
 import com.cooperativa.app.ui.components.UltimosMovimientosCard
-import com.cooperativa.app.viewmodel.AuthViewModel
-
 
 @Composable
-fun MainScreen(tipoCuenta: TipoCuenta, viewModel: CuentasViewModel = viewModel()) {
+fun MainScreen(
+    tipoCuenta: TipoCuenta,
+    viewModel: CuentasViewModel = viewModel()
+) {
     val cuentas = viewModel.obtenerCuentasPorTipo(tipoCuenta)
     val cuentaPrincipal = cuentas.firstOrNull()
 
-    // Estructura general
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()) // si quieres scroll en todo
+            .verticalScroll(rememberScrollState()) // scroll en toda la pantalla
     ) {
-        // Carrusel de cuentas (opcional)
-        if (cuentas.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .horizontalScroll(rememberScrollState())
-                    .padding(vertical = 16.dp)
-            ) {
-                cuentas.forEach { cuenta ->
-                    CuentaCard(
-                        cuenta = cuenta,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
+        // Parte superior: fondo blanco + carrusel
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+        ) {
+            if (cuentas.isNotEmpty()) {
+                // Coloca un Spacer si quieres separar un poco
+                Column {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AccountCarousel(cuentas = cuentas)
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }
 
-        // Sección "Últimos movimientos"
-        if (cuentaPrincipal != null) {
-            Row(
+        // Parte inferior: fondo gris (del theme) + "Últimos movimientos"
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(vertical = 16.dp)
             ) {
-                Text(
-                    text = "Últimos movimientos",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "Ver todo",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                    // Acciones para navegar a transacciones completas
-                )
+                if (cuentaPrincipal != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Últimos movimientos",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "Ver todo",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    // Card con los 5 movimientos
+                    UltimosMovimientosCard(cuentaPrincipal.transacciones)
+                }
             }
-
-            // Muestra un solo bloque (Card) con hasta 5 transacciones
-            UltimosMovimientosCard(cuentaPrincipal.transacciones)
         }
     }
 }

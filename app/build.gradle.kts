@@ -75,6 +75,10 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.datastore.core)
 
+    implementation(libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

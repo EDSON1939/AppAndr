@@ -20,69 +20,46 @@ import com.cooperativa.app.data.models.TipoTransaccion
 // 1) Ítem sin Card (solo un Row con fondo blanco)
 @Composable
 fun TransaccionItemNoCard(transaccion: Transaccion) {
-    val signoMonto = if (transaccion.tipo == TipoTransaccion.RETIRO) "-" else "+"
+    val signo = if (transaccion.tipo == TipoTransaccion.RETIRO) "-" else "+"
     val colorMonto = if (transaccion.tipo == TipoTransaccion.RETIRO) Color(0xFFFF7262) else Color(0xFF3EC27E)
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)  // Se integra con el Card padre
-            .padding(16.dp),         // Espacio interno
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .background(Color.White)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Parte izquierda: ícono + descripción
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(Color(0xFFF2F4F7), RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.BusinessCenter,
-                    contentDescription = null,
-                    tint = Color(0xFF081B61),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = transaccion.tipo.name,
-                    color = Color.Black,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = transaccion.sucursal,
-                    color = Color.Gray,
-                    fontSize = 12.sp
-                )
-            }
+        Column {
+            Text(
+                text = transaccion.tipo.name,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = transaccion.sucursal,
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
         }
-
-        // Parte derecha: monto + fecha
         Column(horizontalAlignment = Alignment.End) {
             Text(
-                text = "$signoMonto ${transaccion.monto} Bs.",
+                text = "$signo ${transaccion.monto} Bs.",
                 color = colorMonto,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = transaccion.fecha,
-                color = Color.Gray,
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                color = Color.Gray
             )
         }
     }
 }
 
-// 2) Card único que contiene hasta 5 transacciones unidas
+
 @Composable
 fun UltimosMovimientosCard(transacciones: List<Transaccion>) {
-    // Tomamos solo 5 (o menos, si hay menos de 5)
     val transaccionesLimitadas = transacciones.take(5)
 
     Card(
@@ -91,18 +68,13 @@ fun UltimosMovimientosCard(transacciones: List<Transaccion>) {
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp) // Márgenes laterales del bloque
+            .padding(horizontal = 16.dp)
     ) {
         Column {
             transaccionesLimitadas.forEachIndexed { index, transaccion ->
-                // Divider opcional para separar ítems
                 if (index != 0) {
-                    Divider(
-                        color = Color(0xFFE0E0E0),
-                        thickness = 1.dp
-                    )
+                    Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
                 }
-                // Cada ítem se dibuja sin Card, para lucir unidos
                 TransaccionItemNoCard(transaccion)
             }
         }
