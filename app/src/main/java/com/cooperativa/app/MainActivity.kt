@@ -4,28 +4,30 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.cooperativa.app.data.local.TokenManager
-import com.cooperativa.app.data.remote.AuthRepository
-import com.cooperativa.app.data.remote.RetrofitInstance
-import com.cooperativa.app.navigation.AppContent
+import com.cooperativa.app.ui.navigation.AppNavGraph
 import com.cooperativa.app.ui.theme.CooperativaAppTheme
-import com.cooperativa.app.viewmodel.AuthViewModel
-import com.cooperativa.app.viewmodel.AuthViewModelFactory
+import com.cooperativa.app.ui.viewmodel.AuthViewModelFactory
+import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
+
+    // Inyectamos la fábrica del ViewModel
+    @Inject
+    lateinit var authViewModelFactory: AuthViewModelFactory
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Inyectamos la Activity usando el AppComponent
+        (application as CooperativaApp).appComponent.inject(this)
         super.onCreate(savedInstanceState)
-        val tokenManager = TokenManager(applicationContext)
+
         setContent {
             CooperativaAppTheme {
-                // Creamos un único NavController para toda la app.
                 val navController = rememberNavController()
-                val authRepository = AuthRepository(RetrofitInstance.api)
-                val authViewModel: AuthViewModel = viewModel(
-                    factory = AuthViewModelFactory(authRepository, tokenManager)
+                // Pasamos la fábrica a la navegación
+                AppNavGraph(
+                    navController = navController,
+                    authViewModelFactory = authViewModelFactory
                 )
-                AppContent(navController, authViewModel)
             }
         }
     }

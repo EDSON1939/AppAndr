@@ -33,6 +33,16 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+    kotlin {
+        sourceSets {
+            debug {
+                kotlin.srcDir("build/generated/ksp/debug/kotlin")
+            }
+            release {
+                kotlin.srcDir("build/generated/ksp/release/kotlin")
+            }
+        }
+    }
     kotlinOptions {
         jvmTarget = "21"
     }
@@ -64,9 +74,10 @@ dependencies {
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
 
-    // ✅ Hilt (Inyección de dependencias)
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    // ✅ (Inyección de dependencias)
+
+    implementation(libs.dagger)
+    ksp(libs.dagger.compiler)
 
     // ✅ Jetpack Compose Navigation
     implementation(libs.compose.navigation)

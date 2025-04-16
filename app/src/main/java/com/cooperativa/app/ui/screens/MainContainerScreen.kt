@@ -1,5 +1,5 @@
 package com.cooperativa.app.ui.screens
-
+/*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -15,9 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.cooperativa.app.navigation.AppNavigator
-import com.cooperativa.app.ui.components.BottomNavigationBar
-import com.cooperativa.app.viewmodel.AuthViewModel
+import com.cooperativa.app.ui.navigation.AppNavigator
+import com.cooperativa.app.ui.screens.components.BottomNavigationBar
+import com.cooperativa.app.ui.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,3 +122,4 @@ fun MinimalTopBarWithAvatar(
         }
     )
 }
+*/

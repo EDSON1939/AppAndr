@@ -1,4 +1,4 @@
-package com.cooperativa.app.viewmodel
+package com.cooperativa.app.ui.viewmodel
 
 
 import androidx.compose.runtime.mutableStateListOf

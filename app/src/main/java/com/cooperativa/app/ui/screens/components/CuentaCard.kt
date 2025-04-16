@@ -1,4 +1,4 @@
-package com.cooperativa.app.ui.components
+package com.cooperativa.app.ui.screens.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*

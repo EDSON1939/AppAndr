@@ -9,8 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.cooperativa.app.viewmodel.TransaccionesViewModel
-import com.cooperativa.app.ui.components.TransaccionItem
+import com.cooperativa.app.ui.viewmodel.TransaccionesViewModel
+import com.cooperativa.app.ui.screens.components.TransaccionItem
 
 @Composable
 fun TransaccionesScreen(viewModel: TransaccionesViewModel = viewModel()) {

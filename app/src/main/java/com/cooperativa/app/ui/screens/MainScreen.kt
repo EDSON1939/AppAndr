@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.cooperativa.app.data.models.TipoCuenta
-import com.cooperativa.app.viewmodel.CuentasViewModel
+import com.cooperativa.app.ui.viewmodel.CuentasViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.cooperativa.app.ui.components.AccountCarousel
-import com.cooperativa.app.ui.components.UltimosMovimientosCard
+import com.cooperativa.app.ui.screens.components.AccountCarousel
+import com.cooperativa.app.ui.screens.components.UltimosMovimientosCard
 
 @Composable
 fun MainScreen(
