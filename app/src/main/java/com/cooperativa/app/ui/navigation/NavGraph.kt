@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.cooperativa.app.ui.screens.accounts.AccountAndMovements
+import com.cooperativa.app.ui.screens.accounts.viewmodel.AccountsViewModelFactory
 import com.cooperativa.app.ui.screens.auth.CreatePasswordScreen
 import com.cooperativa.app.ui.screens.auth.LoginScreen
 import com.cooperativa.app.ui.viewmodel.AuthViewModel
@@ -16,7 +17,8 @@ import com.cooperativa.app.ui.viewmodel.AuthViewModelFactory
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
-    authViewModelFactory: AuthViewModelFactory
+    authViewModelFactory: AuthViewModelFactory,
+    accountsViewModelFactory: AccountsViewModelFactory
 ) {
     NavHost(
         navController = navController,
@@ -55,16 +57,15 @@ fun AppNavGraph(
             )
         }
 
-        // Pantalla Principal
         composable(Destinations.ACCOUNTSMOVEMENTS) {
-            // Aquí iría tu MainScreen o HomeScreen
             AccountAndMovements(
+                accountsViewModelFactory = accountsViewModelFactory,
                 onLogout = {
-                    // Al hacer logout, volvemos a LOGIN limpiando todo
                     navController.navigate(Destinations.LOGIN) {
                         popUpTo(0)
                     }
-                }
+                },
+                navController = navController
             )
         }
 

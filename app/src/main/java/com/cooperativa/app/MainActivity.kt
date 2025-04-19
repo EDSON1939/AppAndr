@@ -5,8 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
 import com.cooperativa.app.ui.navigation.AppNavGraph
+import com.cooperativa.app.ui.screens.accounts.viewmodel.AccountsViewModelFactory
 import com.cooperativa.app.ui.theme.CooperativaAppTheme
 import com.cooperativa.app.ui.viewmodel.AuthViewModelFactory
+
 import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
@@ -14,6 +16,8 @@ class MainActivity : ComponentActivity() {
     // Inyectamos la fábrica del ViewModel
     @Inject
     lateinit var authViewModelFactory: AuthViewModelFactory
+    @Inject
+    lateinit var accountsViewModelFactory: AccountsViewModelFactory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Inyectamos la Activity usando el AppComponent
@@ -26,7 +30,9 @@ class MainActivity : ComponentActivity() {
                 // Pasamos la fábrica a la navegación
                 AppNavGraph(
                     navController = navController,
-                    authViewModelFactory = authViewModelFactory
+                    authViewModelFactory = authViewModelFactory,
+                    accountsViewModelFactory = accountsViewModelFactory
+
                 )
             }
         }

@@ -1,6 +1,6 @@
 package com.cooperativa.app.ui.viewmodel
 
-
+/*
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.cooperativa.app.data.models.*
@@ -68,4 +68,4 @@ class CuentasViewModel : ViewModel() {
     fun obtenerCuentasPorTipo(tipoCuenta: TipoCuenta): List<Cuenta> {
         return cuentas.filter { it.tipoCuenta == tipoCuenta }
     }
-}
+}*/

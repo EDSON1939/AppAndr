@@ -2,6 +2,8 @@ package com.cooperativa.app.data.di
 
 import android.app.Application
 import com.cooperativa.app.data.managers.TokenManager
+import com.cooperativa.app.data.network.services.AccountsService
+import com.cooperativa.app.data.network.services.AccountsServiceImpl
 import com.cooperativa.app.data.network.services.AuthService
 import com.cooperativa.app.data.network.services.AuthServiceImpl
 import dagger.Module
@@ -21,5 +23,11 @@ class AppModule(private val app: Application) {
     @Singleton
     fun provideAuthServiceImpl(api: AuthService, tokenManager: TokenManager): AuthServiceImpl {
         return AuthServiceImpl(api, tokenManager)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAccountServiceImpl(api: AccountsService, tokenManager: TokenManager): AccountsServiceImpl {
+        return AccountsServiceImpl(api, tokenManager)
     }
 }

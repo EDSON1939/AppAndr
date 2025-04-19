@@ -27,27 +27,33 @@ class AuthViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(password = password)
     }
 
-    fun login(onSuccess: () -> Unit = {}) {
+    fun login() {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                isPasswordIncorrect = false,
+                errorMessage = null
+            )
 
-            Log.e("Login", "Esto es un log ")
-
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            when (val result = authService.login(_uiState.value.username, _uiState.value.password)) {
+            when (val result = authService.login(
+                _uiState.value.username,
+                _uiState.value.password
+            )) {
                 is Result.Success -> {
-
-                    Log.e("Login", "${uiState.value}}")
-
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isLoggedIn = true
                     )
-                    onSuccess()
                 }
                 is Result.Failure -> {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = result.exception.message
+                        isPasswordIncorrect = result.exception.message == "password_incorrect",
+                        errorMessage = if (result.exception.message == "password_incorrect") {
+                            "Contraseña incorrecta"
+                        } else {
+                            result.exception.message ?: "Error desconocido"
+                        }
                     )
                 }
             }

@@ -150,18 +150,12 @@ fun LoginScreen(
                             .padding(top = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Info,
-                            contentDescription = "Error de contraseña",
-                            tint = Color.Red,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Filled.Info, "Error", tint = Color.Red)
+                        Spacer(Modifier.width(8.dp))
                         Text(
                             text = "Contraseña incorrecta. Verifica tu contraseña.",
                             color = Color.Red,
-                            fontSize = 14.sp,
-                            textAlign = TextAlign.Start
+                            fontSize = 14.sp
                         )
                     }
                 }

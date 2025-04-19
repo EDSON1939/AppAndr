@@ -1,5 +1,5 @@
 package com.cooperativa.app.ui.screens.components
-
+/*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -101,4 +101,4 @@ fun FancyCuentaCard(cuenta: Cuenta, modifier: Modifier = Modifier) {
             }
         }
     }
-}
+}*/
