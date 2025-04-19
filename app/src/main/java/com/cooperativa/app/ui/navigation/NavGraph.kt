@@ -4,9 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.cooperativa.app.ui.screens.accounts.AccountAndMovements
+import com.cooperativa.app.ui.screens.accounts.AllMovementsScreen
 import com.cooperativa.app.ui.screens.accounts.viewmodel.AccountsViewModelFactory
 import com.cooperativa.app.ui.screens.auth.CreatePasswordScreen
 import com.cooperativa.app.ui.screens.auth.LoginScreen
@@ -61,14 +64,23 @@ fun AppNavGraph(
             AccountAndMovements(
                 accountsViewModelFactory = accountsViewModelFactory,
                 onLogout = {
-                    navController.navigate(Destinations.LOGIN) {
-                        popUpTo(0)
-                    }
+                    navController.navigate(Destinations.LOGIN) { popUpTo(0) }
                 },
                 navController = navController
             )
         }
 
+        composable(
+            route = "movements/{accountId}",
+            arguments = listOf(navArgument("accountId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val accountId = backStackEntry.arguments?.getString("accountId") ?: ""
+            AllMovementsScreen(
+                accountId = accountId,
+                onBackClick = { navController.popBackStack() },
+                viewModel = viewModel(factory = accountsViewModelFactory)
+            )
+        }
 
     }
 }

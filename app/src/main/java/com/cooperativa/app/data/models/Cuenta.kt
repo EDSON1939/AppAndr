@@ -6,10 +6,9 @@ data class Account(
     val id: String,
     val name: String,
     val number: String,
-    val type: AccountType,
     val balance: Double,
-    val currency: String = "Bs.", // Nueva propiedad
-    val status: AccountStatus = AccountStatus.ACTIVE, // Nueva enum
+    val currency: String,
+    val type: String, // "AHORRO", "CREDITO", "APORTE"
     val movements: List<Movement>
 )
 

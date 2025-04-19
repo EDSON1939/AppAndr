@@ -27,11 +27,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.cooperativa.app.data.models.Account
 import com.cooperativa.app.data.models.Movement
 
 @Composable
-fun MovementList(movements: List<Movement>) {
+fun MovementList(
+    movements: List<Movement>,
+    onViewAllClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -39,11 +43,21 @@ fun MovementList(movements: List<Movement>) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column {
-            Text(
-                text = "Últimos movimientos",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(16.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Últimos movimientos",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                TextButton(onClick = onViewAllClick) {
+                    Text("Ver todos")
+                }
+            }
 
             Divider()
 
@@ -55,7 +69,7 @@ fun MovementList(movements: List<Movement>) {
                     color = Color.Gray
                 )
             } else {
-                movements.forEach { movement ->
+                movements.take(5).forEach { movement ->
                     MovementItem(movement = movement)
                     Divider()
                 }
@@ -63,6 +77,7 @@ fun MovementList(movements: List<Movement>) {
         }
     }
 }
+
 
 @Composable
 fun AccountDetailScreen(
@@ -150,6 +165,7 @@ fun AccountDetailScreen(
     }
 }
 
+
 @Composable
 fun MovementItem(movement: Movement) {
     Row(
@@ -159,29 +175,34 @@ fun MovementItem(movement: Movement) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = movement.description,
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.height(4.dp))
+
             movement.location?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
             Text(
                 text = movement.date,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
         Text(
             text = "${if (movement.amount > 0) "+" else ""}${movement.currencySymbol}${movement.amount}",
-            color = if (movement.amount > 0) Color(0xFF3EC27E) else Color(0xFFFF7262),
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = if (movement.amount > 0) Color(0xFF388E3C) else Color(0xFFD32F2F)
         )
     }
 }

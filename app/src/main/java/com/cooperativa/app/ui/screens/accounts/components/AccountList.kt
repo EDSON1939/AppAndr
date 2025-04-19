@@ -25,22 +25,32 @@ import com.cooperativa.app.data.models.Account
 @Composable
 fun AccountList(
     accounts: List<Account>,
-    onAccountSelected: (Account) -> Unit
+    onAccountSelected: (Account) -> Unit,
+    selectedAccount: Account?
 ) {
     val scrollState = rememberScrollState()
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(scrollState)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        accounts.forEach { account ->
-            AccountCard(
-                account = account,
-                onClick = { onAccountSelected(account) }
-            )
+    Column {
+        Text(
+            text = "Mis Cuentas",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(scrollState)
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            accounts.forEach { account ->
+                AccountCard(
+                    account = account,
+                    isSelected = selectedAccount?.id == account.id,
+                    onClick = { onAccountSelected(account) }
+                )
+            }
         }
     }
 }
@@ -48,13 +58,16 @@ fun AccountList(
 @Composable
 fun AccountCard(
     account: Account,
+    isSelected: Boolean,
     onClick: () -> Unit
 ) {
     Card(
         onClick = onClick,
         modifier = Modifier.width(200.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Color(0xFFE3F2FD) else Color.White
+        ),
+        elevation = CardDefaults.cardElevation(if (isSelected) 8.dp else 4.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -72,10 +85,12 @@ fun AccountCard(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Saldo: ${account.balance} Bs.",
+                text = "Saldo: ${account.balance} ${account.currency}",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )
         }
     }
 }
+
+

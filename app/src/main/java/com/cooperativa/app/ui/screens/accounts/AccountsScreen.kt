@@ -1,6 +1,13 @@
 package com.cooperativa.app.ui.screens.accounts
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,10 +41,16 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.cooperativa.app.data.models.Account
+import com.cooperativa.app.ui.navigation.BottomNavigationBar
 import com.cooperativa.app.ui.screens.accounts.components.AccountCard
 import com.cooperativa.app.ui.screens.accounts.components.MovementItem
 
@@ -50,7 +63,8 @@ fun AccountAndMovements(
     viewModel: AccountsViewModel = viewModel(factory = accountsViewModelFactory)
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val selectedAccount by viewModel.selectedAccount.collectAsState()
+    var selectedAccountId by remember { mutableStateOf<String?>(null) }
+    var selectedTab by remember { mutableStateOf(1) } // 1=Créditos (según tu mockup)
 
     Scaffold(
         topBar = {
@@ -58,9 +72,15 @@ fun AccountAndMovements(
                 onNotificationsClick = { /* TODO */ },
                 onUserAvatarClick = { /* TODO */ }
             )
+        },
+        bottomBar = {
+            BottomNavigationBar(selectedTab) { tabIndex ->
+                selectedTab = tabIndex
+                // Aquí puedes agregar navegación si es necesario
+            }
         }
     ) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
@@ -69,29 +89,132 @@ fun AccountAndMovements(
             when (uiState) {
                 is AccountsUiState.Loading -> CenterLoading()
                 is AccountsUiState.Success -> {
-                    val data = (uiState as AccountsUiState.Success).data
+                    val accounts = (uiState as AccountsUiState.Success).data.accounts
 
-                    if (selectedAccount != null) {
-                        AccountDetailScreen(
-                            account = selectedAccount!!,
-                            onViewAllClick = { /* Navegar a pantalla completa */ },
-                            onBackClick = { viewModel.selectAccount(null) }
-                        )
-                    } else {
-                        AccountListScreen(
-                            accounts = data.accounts,
-                            onAccountSelected = { viewModel.selectAccount(it) }
-                        )
+                    // Filtra cuentas según la pestaña seleccionada
+                    val filteredAccounts = when(selectedTab) {
+                        0 -> accounts.filter { it.type == "AHORRO" }
+                        1 -> accounts.filter { it.type == "CREDITO" }
+                        2 -> accounts.filter { it.type == "APORTE" }
+                        else -> accounts
+                    }
+
+                    // Lista vertical de cuentas filtradas
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(filteredAccounts) { account ->
+                            AccountItem(
+                                account = account,
+                                isExpanded = selectedAccountId == account.id,
+                                onAccountClick = {
+                                    selectedAccountId = if (selectedAccountId == account.id) null else account.id
+                                },
+                                onViewAllClick = {
+                                    navController.navigate("movements/${account.id}")
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
-                is AccountsUiState.Error -> {
-                    ErrorScreen(message = (uiState as AccountsUiState.Error).message)
-                }
+                is AccountsUiState.Error -> ErrorScreen(message = (uiState as AccountsUiState.Error).message)
             }
         }
     }
 }
 
+@Composable
+fun AccountItem(
+    account: Account,
+    isExpanded: Boolean,
+    onAccountClick: () -> Unit,
+    onViewAllClick: () -> Unit
+) {
+    val transition = updateTransition(isExpanded, label = "accountTransition")
+    val cardElevation by transition.animateDp(label = "elevation") { if (it) 8.dp else 2.dp }
+    val cardColor by transition.animateColor(label = "color") {
+        if (it) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surface
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(cardElevation),
+        colors = CardDefaults.cardColors(containerColor = cardColor)
+    ) {
+        Column {
+            // Encabezado de la cuenta
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onAccountClick() }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = account.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = account.number,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Text(
+                    text = "${account.balance} ${account.currency}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            // Contenido expandible
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    // Encabezado movimientos
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "ÚLTIMOS MOVIMIENTOS",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        TextButton(onClick = onViewAllClick) {
+                            Text("VER TODOS")
+                        }
+                    }
+
+                    // Lista de movimientos (5 primeros)
+                    Column {
+                        account.movements.take(5).forEach { movement ->
+                            MovementItem(movement = movement)
+                            Divider(thickness = 0.5.dp)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
+/*
 @Composable
 private fun AccountListScreen(
     accounts: List<Account>,
@@ -107,7 +230,7 @@ private fun AccountListScreen(
         }
     }
 }
-
+*/
 @Composable
 private fun AccountDetailScreen(
     account: Account,
@@ -165,7 +288,7 @@ private fun AccountDetailScreen(
 }
 
 @Composable
-private fun CenterLoading() {
+ fun CenterLoading() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
