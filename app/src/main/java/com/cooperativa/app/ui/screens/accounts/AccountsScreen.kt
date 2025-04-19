@@ -6,6 +6,8 @@ import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -37,22 +39,35 @@ import com.cooperativa.app.ui.screens.accounts.viewmodel.AccountsViewModelFactor
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.cooperativa.app.data.models.Account
+import com.cooperativa.app.data.models.Movement
 import com.cooperativa.app.ui.navigation.BottomNavigationBar
 import com.cooperativa.app.ui.screens.accounts.components.AccountCard
 import com.cooperativa.app.ui.screens.accounts.components.MovementItem
+import com.cooperativa.app.ui.theme.NegativeRed
+import com.cooperativa.app.ui.theme.PositiveGreen
+import com.cooperativa.app.ui.theme.PrimaryBlue
+import com.cooperativa.app.ui.theme.SecondaryBlue
+import com.cooperativa.app.ui.theme.TextPrimary
+import com.cooperativa.app.ui.theme.TextSecondary
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +79,7 @@ fun AccountAndMovements(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedAccountId by remember { mutableStateOf<String?>(null) }
-    var selectedTab by remember { mutableStateOf(1) } // 1=Créditos (según tu mockup)
+    var selectedTab by remember { mutableStateOf(1) }
 
     Scaffold(
         topBar = {
@@ -74,24 +89,21 @@ fun AccountAndMovements(
             )
         },
         bottomBar = {
-            BottomNavigationBar(selectedTab) { tabIndex ->
-                selectedTab = tabIndex
-                // Aquí puedes agregar navegación si es necesario
-            }
+            BottomNavigationBar(
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it }
+            )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
         ) {
             when (uiState) {
                 is AccountsUiState.Loading -> CenterLoading()
                 is AccountsUiState.Success -> {
                     val accounts = (uiState as AccountsUiState.Success).data.accounts
-
-                    // Filtra cuentas según la pestaña seleccionada
                     val filteredAccounts = when(selectedTab) {
                         0 -> accounts.filter { it.type == "AHORRO" }
                         1 -> accounts.filter { it.type == "CREDITO" }
@@ -99,27 +111,423 @@ fun AccountAndMovements(
                         else -> accounts
                     }
 
-                    // Lista vertical de cuentas filtradas
                     LazyColumn(
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(filteredAccounts) { account ->
-                            AccountItem(
+                            ElevatedAccountCard(
                                 account = account,
                                 isExpanded = selectedAccountId == account.id,
-                                onAccountClick = {
+                                onClick = {
                                     selectedAccountId = if (selectedAccountId == account.id) null else account.id
-                                },
-                                onViewAllClick = {
-                                    navController.navigate("movements/${account.id}")
                                 }
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+
+                            if (selectedAccountId == account.id) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                RecentTransactionsSection(
+                                    account = account,
+                                    onViewAllClick = {
+                                        navController.navigate("movements/${account.id}")
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
                         }
                     }
                 }
                 is AccountsUiState.Error -> ErrorScreen(message = (uiState as AccountsUiState.Error).message)
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun ElevatedAccountCard(
+    account: Account,
+    isExpanded: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isExpanded) 8.dp else 4.dp),
+        border = if (isExpanded) BorderStroke(1.dp, PrimaryBlue.copy(alpha = 0.5f)) else null
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() }
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = account.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = PrimaryBlue,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = account.number,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                }
+
+                Text(
+                    text = "${account.balance} ${account.currency}",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            }
+
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider(color = Color.LightGray.copy(alpha = 0.5f), thickness = 1.dp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Toca para cerrar",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondary,
+                    modifier = Modifier.align(Alignment.End)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RecentTransactionsSection(
+    account: Account,
+    onViewAllClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column {
+            // Encabezado unificado
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Últimos Movimientos",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+
+                TextButton(
+                    onClick = onViewAllClick,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = PrimaryBlue
+                    )
+                ) {
+                    Text("Ver todos")
+                }
+            }
+
+            // Línea divisoria
+            Divider(
+                color = Color.LightGray.copy(alpha = 0.3f),
+                thickness = 1.dp,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            // Lista de movimientos
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                account.movements.take(5).forEachIndexed { index, movement ->
+                    if (index > 0) {
+                        Divider(
+                            color = Color.LightGray.copy(alpha = 0.1f),
+                            thickness = 1.dp
+                        )
+                    }
+                    TransactionItem(movement = movement)
+                }
+            }
+
+            // Espacio inferior
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+fun TransactionItem(movement: Movement) {
+    val isPositive = movement.amount > 0
+    val amountText = "${if (isPositive) "+" else "-"} ${movement.amount} $$$"
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = movement.description,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = TextPrimary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Row {
+                movement.location?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                }
+                Text(
+                    text = movement.date,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
+                )
+            }
+        }
+
+        Text(
+            text = amountText,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isPositive) PositiveGreen else NegativeRed
+        )
+    }
+}
+
+@Composable
+fun TransactionCard(movement: Movement) {
+    val isPositive = movement.amount > 0
+    val icon = if (isPositive) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward
+    val iconColor = if (isPositive) PositiveGreen else NegativeRed
+    val amountText = "${if (isPositive) "+" else "-"} ${movement.amount} $$$"
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(iconColor.copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = if (isPositive) "Ingreso" else "Egreso",
+                    tint = iconColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = movement.description,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = TextPrimary
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = movement.location ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
+                )
+                Text(
+                    text = movement.date,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
+                )
+            }
+
+            Text(
+                text = amountText,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isPositive) PositiveGreen else NegativeRed
+            )
+        }
+    }
+}
+
+@Composable
+fun UltimosMovimientosSection(
+    account: Account,
+    onViewAllClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+    ) {
+        // Encabezado
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "ÚLTIMOS MOVIMIENTOS",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color(0xFF081B61)
+            )
+            TextButton(
+                onClick = onViewAllClick,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = Color(0xFF081B61)
+                )
+            ) {
+                Text("VER TODO")
+            }
+        }
+
+        // Tarjeta de movimientos
+        UltimosMovimientosCard(
+            movements = account.movements.take(5),
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+}
+
+@Composable
+fun UltimosMovimientosCard(
+    movements: List<Movement>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(6.dp)
+    ) {
+        Column {
+            movements.forEachIndexed { index, movement ->
+                if (index > 0) {
+                    Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                }
+                MovementItem(movement = movement)
+            }
+        }
+    }
+}
+
+@Composable
+fun FancyAccountCard(
+    account: Account,
+    isExpanded: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF081B61)
+        ),
+        elevation = CardDefaults.cardElevation(if (isExpanded) 8.dp else 4.dp)
+    ) {
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+        ) {
+            // Fondo con onda (de tu versión anterior)
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val width = size.width
+                val height = size.height
+                val path = Path().apply {
+                    moveTo(width, 0f)
+                    cubicTo(
+                        width * 0.6f, 0f,
+                        width * 0.4f, height * 0.4f,
+                        0f, height
+                    )
+                    lineTo(width, height)
+                    close()
+                }
+                drawPath(path = path, color = Color(0xFF081B61).copy(alpha = 0.9f))
+            }
+
+            // Contenido de la cuenta
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = account.name,
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "CUENTA DE ${account.name}",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 12.sp
+                        )
+                    }
+                    Text(
+                        text = "SALDO ${account.balance} ${account.currency}",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "NR ${account.number}",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

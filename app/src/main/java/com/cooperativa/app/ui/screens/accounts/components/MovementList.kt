@@ -168,41 +168,40 @@ fun AccountDetailScreen(
 
 @Composable
 fun MovementItem(movement: Movement) {
+    val signo = if (movement.amount > 0) "+" else "-"
+    val colorMonto = if (movement.amount > 0) Color(0xFF3EC27E) else Color(0xFFFF7262)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column {
             Text(
                 text = movement.description,
-                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(4.dp))
-
             movement.location?.let {
                 Text(
                     text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    fontSize = 12.sp,
+                    color = Color.Gray
                 )
             }
-
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = "$signo ${movement.amount} movement.currency",
+                color = colorMonto,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
             Text(
                 text = movement.date,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontSize = 12.sp,
+                color = Color.Gray
             )
         }
-
-        Text(
-            text = "${if (movement.amount > 0) "+" else ""}${movement.currencySymbol}${movement.amount}",
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = if (movement.amount > 0) Color(0xFF388E3C) else Color(0xFFD32F2F)
-        )
     }
 }

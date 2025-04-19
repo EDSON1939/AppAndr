@@ -11,11 +11,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+// Colores principales (puedes definirlos en tu archivo de temas)
+val PrimaryBlue = Color(0xFF2A5C99)  // Azul más suave y profesional
+val SecondaryBlue = Color(0xFFE8F0FE) // Fondo claro azulado
+val PositiveGreen = Color(0xFF4CAF50) // Verde para ingresos
+val NegativeRed = Color(0xFFF44336)   // Rojo para egresos
+val TextPrimary = Color(0xFF333333)   // Texto principal oscuro
+val TextSecondary = Color(0xFF666666) // Texto secundario
+
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
     tertiary = Pink80,
     background = Color(0xFFF8F9FC)
+
+
 )
 
 private val LightColorScheme = lightColorScheme(
