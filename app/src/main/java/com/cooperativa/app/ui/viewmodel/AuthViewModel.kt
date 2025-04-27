@@ -1,6 +1,7 @@
 package com.cooperativa.app.ui.viewmodel
 
 import android.util.Log
+import com.cooperativa.app.data.managers.DeviceInfoHelper
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cooperativa.app.data.managers.TokenManager
@@ -13,7 +14,9 @@ import javax.inject.Inject
 
 class AuthViewModel @Inject constructor(
     private val authService: AuthServiceImpl,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val deviceInfoHelper: DeviceInfoHelper
+
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -35,10 +38,25 @@ class AuthViewModel @Inject constructor(
                 errorMessage = null
             )
 
+            //////// AQUI OBTENER TODO LO DE DEVICEHELPER
+
+            val deviceInfo = mapOf(
+                "deviceName" to deviceInfoHelper.getDeviceName(),
+                "deviceModel" to deviceInfoHelper.getDeviceModel(),
+                "androidId" to deviceInfoHelper.getAndroidId(),
+                "macAddress" to deviceInfoHelper.getMacAddress(),
+                "ipAddress" to deviceInfoHelper.getIpAddress(),
+                "stableDeviceId" to deviceInfoHelper.getStableDeviceId(),
+                "ID" to deviceInfoHelper.getDeviceId()
+            )
+
             when (val result = authService.login(
                 _uiState.value.username,
-                _uiState.value.password
+                _uiState.value.password,
+                deviceInfo
             )) {
+
+
                 is Result.Success -> {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -46,14 +64,21 @@ class AuthViewModel @Inject constructor(
                     )
                 }
                 is Result.Failure -> {
+                    Log.d("login", "Datos  $deviceInfo")
+
+                    _passwordCreationState.value = _passwordCreationState.value.copy(
+                        isLoading = false,
+                        errorMessage = result.exception.message ?: "Error al cambiar contraseña")
+
+
+
+
+
+
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isPasswordIncorrect = result.exception.message == "password_incorrect",
-                        errorMessage = if (result.exception.message == "password_incorrect") {
-                            "Contraseña incorrecta"
-                        } else {
-                            result.exception.message ?: "Error desconocido"
-                        }
+                        errorMessage = result.exception.message ?: "Error Interno"
                     )
                 }
             }

@@ -12,23 +12,32 @@ class AuthServiceImpl @Inject constructor(
     private val api: AuthService,
     private val tokenManager: TokenManager
 ) {
-    suspend fun login(username: String, password: String): Result<Unit> {
+    suspend fun login(username: String, password: String, deviceInfo: Map<String, String>): Result<Unit> {
         return try {
             Log.e("Login", "Servioce")
 
-            val response = api.login(LoginRequest(username, password))
-            Log.e("Login", "$response")
+            val response = api.login(LoginRequest(username, password, deviceInfo))
+            Log.e("Login", "asdsadas $deviceInfo")
 
             if (response.isSuccessful && response.body() != null) {
                 // Guarda el token recibido
                 tokenManager.saveToken(response.body()!!.token)
                 Result.Success(Unit)
             }  else {
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = try {
+                    // Parsear el JSON para obtener el mensaje
+                    val json = JSONObject(errorBody ?: "")
+                    json.getString("error")
+                } catch (e: Exception) {
+                    "Error al cambiar contraseña"
+                }
+                Result.Failure(Exception(errorMessage))
                 // Manejo específico del error 401
-                when (response.code()) {
+                /*when (response.code()) {
                     401 -> Result.Failure(Exception("password_incorrect"))
                     else -> Result.Failure(Exception("Login failed: ${response.code()}"))
-                }
+                }*/
             }
         } catch (e: Exception) {
             Result.Failure(e)

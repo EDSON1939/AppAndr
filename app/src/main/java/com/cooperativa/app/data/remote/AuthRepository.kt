@@ -7,10 +7,10 @@ import android.util.Log
 
 class AuthRepository(private val api: ApiService) {
 
-    suspend fun login(username: String, password: String): Response<LoginResponse>? {
+    suspend fun login(username: String, password: String, deviceInfo: Map<String, String>): Response<LoginResponse>? {
         Log.d("login", "Datos Time: $username  +  $password")
 
-        val request = LoginRequest(username, password) // ✅ Crear el objeto antes de enviarlo
+        val request = LoginRequest(username, password, deviceInfo) // ✅ Crear el objeto antes de enviarlo
 
         Log.d("login", "Datos  $request")
 
