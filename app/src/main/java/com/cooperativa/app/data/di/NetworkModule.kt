@@ -12,7 +12,8 @@ import javax.inject.Singleton
 
 @Module
 object NetworkModule {
-    private const val BASE_URL = "http://192.168.0.6:5001/"
+    private const val BASE_URL = "http://192.168.100.32:5001/"
+    private const val ACCOUNTS_BASE_URL = "http://192.168.100.32:5002/"
 
     @Provides
     @Singleton

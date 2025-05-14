@@ -22,38 +22,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cooperativa.app.data.models.Account
 
-@Composable
-fun AccountList(
-    accounts: List<Account>,
-    onAccountSelected: (Account) -> Unit,
-    selectedAccount: Account?
-) {
-    val scrollState = rememberScrollState()
-
-    Column {
-        Text(
-            text = "Mis Cuentas",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(scrollState)
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            accounts.forEach { account ->
-                AccountCard(
-                    account = account,
-                    isSelected = selectedAccount?.id == account.id,
-                    onClick = { onAccountSelected(account) }
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun AccountCard(
