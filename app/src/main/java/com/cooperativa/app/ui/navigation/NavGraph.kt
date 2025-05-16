@@ -9,7 +9,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.cooperativa.app.ui.screens.accounts.AccountAndMovements
-import com.cooperativa.app.ui.screens.accounts.AllMovementsScreen
+import com.cooperativa.app.ui.screens.accounts.AccountDetailRoute
+import com.cooperativa.app.ui.screens.accounts.viewmodel.AccountDetailViewModelFactory
 import com.cooperativa.app.ui.screens.accounts.viewmodel.AccountsViewModelFactory
 import com.cooperativa.app.ui.screens.auth.CreatePasswordScreen
 import com.cooperativa.app.ui.screens.auth.LoginScreen
@@ -21,7 +22,8 @@ import com.cooperativa.app.ui.viewmodel.AuthViewModelFactory
 fun AppNavGraph(
     navController: NavHostController,
     authViewModelFactory: AuthViewModelFactory,
-    accountsViewModelFactory: AccountsViewModelFactory
+    accountsViewModelFactory: AccountsViewModelFactory,
+    accountDetailViewModelFactory: AccountDetailViewModelFactory
 ) {
     NavHost(
         navController = navController,
@@ -69,7 +71,7 @@ fun AppNavGraph(
                 navController = navController
             )
         }
-
+/*
         composable(
             route = "movements/{accountId}",
             arguments = listOf(navArgument("accountId") { type = NavType.StringType })
@@ -79,6 +81,23 @@ fun AppNavGraph(
                 accountId = accountId,
                 onBackClick = { navController.popBackStack() },
                 viewModel = viewModel(factory = accountsViewModelFactory)
+            )
+        }
+*/
+        composable(
+            route = "accountDetail/{tipo}/{cuenta}",
+            arguments = listOf(
+                navArgument("tipo")   { type = NavType.IntType },
+                navArgument("cuenta") { type = NavType.StringType }
+            )
+        ) { backStack ->
+            val tipo   = backStack.arguments!!.getInt("tipo")
+            val cuenta = backStack.arguments!!.getString("cuenta")!!
+            AccountDetailRoute(
+                navController,
+                tipo,
+                cuenta,
+                accountDetailViewModelFactory   // <-- instancia, no clase
             )
         }
 

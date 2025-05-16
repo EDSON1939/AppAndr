@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.cooperativa.app.ui.screens.accounts.viewmodel.AccountsUiState
 import com.cooperativa.app.ui.screens.accounts.viewmodel.AccountsViewModel
+import com.cooperativa.app.ui.screens.accounts.components.MovementItem
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.cooperativa.app.data.models.Account
 import com.cooperativa.app.data.models.Movement
 import com.cooperativa.app.ui.screens.accounts.components.MovementItem
-
+/*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllMovementsScreen(
@@ -109,12 +110,12 @@ fun AllMovementsScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(account!!.movements) { movement ->
-                        MovementItem(movement = movement)
+                    items(account!!.movements) { m ->
+                        DetailMovementItem(m)
                         Divider(thickness = 0.5.dp)
                     }
                 }
             }
         }
     }
-}
+}*/

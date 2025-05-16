@@ -56,3 +56,30 @@ data class MovimientoResponse(
     @SerializedName("saldo")       val saldo: Double,
     @SerializedName("fecha")      val fecha: String    // << nuevo
 )
+
+
+// data/models/AccountDetailDto.kt
+data class AccountDetailDto(
+    val cuenta: String,
+    val moneda: String,
+    val saldo: Double,
+    @SerializedName("monto_otorgado")
+    val montoOtorgado: Double?,
+    @SerializedName("descripcion_producto")
+    val descripcionProducto: String,
+    @SerializedName("tipo_producto")
+    val tipoProducto: String,
+    @SerializedName("fecha_prox")
+    val fechaProx: String? // "YYYY-MM-DD"
+)
+
+// data/models/MovementDto.kt
+data class MovementDto(
+    val glosa: String,
+    val importe: Double? = null,
+    @SerializedName("pago_amort")
+    val pagoAmort: Double? = null,
+    val valor: Double? = null,
+    val saldo: Double,
+    val fecha: String // "YYYY-MM-DD"
+)

@@ -138,7 +138,9 @@ fun AccountAndMovements(
                                     selectedAccountId = if (selectedAccountId == account.id) null else account.id
                                 },
                                 onViewAllClick = {
-                                    navController.navigate("movements/${account.id}")
+                                    // calculamos el tipo a partir de la pestaña seleccionada
+                                    val rutaTipo = tabToTipo(selectedTab)
+                                    navController.navigate("accountDetail/$rutaTipo/${account.number}")
                                 }
                             )
 
