@@ -8,368 +8,43 @@ import com.cooperativa.app.data.models.MovementType
 import kotlinx.coroutines.delay
 import javax.inject.Inject
 import retrofit2.Response
+import java.util.UUID
+
 
 class AccountsServiceImpl @Inject constructor(
     private val api: AccountsService,
     private val tokenManager: TokenManager
 ) {
-    suspend fun getAccounts(): List<Account> {
-       /* val token = tokenManager.getToken() ?: throw Exception("No autenticado")
-        val response = api.getAccounts("Bearer $token")
-
-        if (response.isSuccessful) {
-            return response.body() ?: emptyList()
-        } else {
+    suspend fun getAccounts(tipo: Int): List<Account> {
+        val token = tokenManager.getToken() ?: throw Exception("No autenticado")
+        val response = api.getAccounts("Bearer $token", tipo)
+        if (!response.isSuccessful) {
             throw Exception(response.errorBody()?.string() ?: "Error al obtener cuentas")
-        }*/
-
-
-        delay(800) // Simular latencia de red
-
-        val mockData = listOf(
+        }
+        val dtoList = response.body() ?: emptyList()
+        // Transformación a tu modelo Account
+        return dtoList.map { dto ->
             Account(
-                id = "11200073012",
-                name = "CREDITO AUTOMOVIL",
-                number = "NR 112000730",
-                type = "CREDITO",
-                balance = 0.01,
-                currency = "Bs.",
-                movements = listOf(
+                id       = dto.cuenta.toString(),
+                name     = dto.descripcionProducto,
+                number   = dto.cuenta ?: "",
+                balance  = dto.saldo,
+                currency = dto.moneda,
+                type     = dto.tipoProducto.trim(),
+                montoOtorgado  = dto.montoOtorgado ?: 0.0,
+                fechaProx     = dto.fechaProx.toString(),
+                movements = dto.movimientos.map { m ->
                     Movement(
-                        id = "mov1",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "18 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov2",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "12 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov3",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "10 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov4",
-                        amount = 421.00,
-                        description = "DEPOSITO",
-                        date = "06 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
+                        id             = UUID.randomUUID().toString(),
+                        amount         = m.pagoAmort ?: m.importe ?: m.valor ?: 0.0,
+                        description    = m.glosa,
+                        date           = m.fecha,             // <-- aquí
+                        type           = MovementType.PAYMENT, // mapea según tu lógica
+                        location       = null,
+                        currencySymbol = dto.moneda
                     )
-                )
-            ),
-            Account(
-                id = "11200073011",
-                name = "CREDITO AUTOMOVIL",
-                number = "NR 112000730",
-                type = "CREDITO",
-                balance = 0.01,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov1",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "18 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov2",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "12 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov3",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "10 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov4",
-                        amount = 421.00,
-                        description = "DEPOSITO",
-                        date = "06 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
-                    )
-                )
-            ),
-            Account(
-                id = "1120007300",
-                name = "CREDITO AUTOMOVIL",
-                number = "NR 112000730",
-                type = "CREDITO",
-                balance = 0.01,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov1",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "18 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov2",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "12 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov3",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "10 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov4",
-                        amount = 421.00,
-                        description = "DEPOSITO",
-                        date = "06 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
-                    )
-                )
-            ),
-            Account(
-                id = "1120007309",
-                name = "CREDITO AUTOMOVIL",
-                number = "NR 112000730",
-                type = "CREDITO",
-                balance = 0.01,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov1",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "18 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov2",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "12 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov3",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "10 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov4",
-                        amount = 421.00,
-                        description = "DEPOSITO",
-                        date = "06 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
-                    )
-                )
-            ),
-            Account(
-                id = "1120007308",
-                name = "CREDITO AUTOMOVIL",
-                number = "NR 112000730",
-                type = "CREDITO",
-                balance = 0.01,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov1",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "18 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov2",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "12 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov3",
-                        amount = 32.00,
-                        description = "DEPOSITO",
-                        date = "10 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL EL ALTO",
-                        currencySymbol = "$"
-                    ),
-                    Movement(
-                        id = "mov4",
-                        amount = 421.00,
-                        description = "DEPOSITO",
-                        date = "06 Sept 2019",
-                        type = MovementType.DEPOSIT,
-                        location = "SUCURSAL IRPAN",
-                        currencySymbol = "$"
-                    )
-                )
-            ),
-            Account(
-                id = "1120007317",
-                name = "CUENTA DE AHORROS",
-                number = "NR 112000731",
-                type = "AHORRO",
-                balance = 1250.75,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov5",
-                        amount = 500.00,
-                        description = "DEPOSITO INICIAL",
-                        date = "01 Oct 2019",
-                        type = MovementType.DEPOSIT,
-                        currencySymbol = "Bs."
-                    )
-                )
-            ),
-
-            Account(
-                id = "1120007316",
-                name = "CUENTA DE AHORROS",
-                number = "NR 112000731",
-                type = "AHORRO",
-                balance = 1250.75,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov5",
-                        amount = 500.00,
-                        description = "DEPOSITO INICIAL",
-                        date = "01 Oct 2019",
-                        type = MovementType.DEPOSIT,
-                        currencySymbol = "Bs."
-                    )
-                )
-            ),
-            Account(
-                id = "1120007315",
-                name = "CUENTA DE AHORROS",
-                number = "NR 112000731",
-                type = "AHORRO",
-                balance = 1250.75,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov5",
-                        amount = 500.00,
-                        description = "DEPOSITO INICIAL",
-                        date = "01 Oct 2019",
-                        type = MovementType.DEPOSIT,
-                        currencySymbol = "Bs."
-                    )
-                )
-            ),
-            Account(
-                id = "1120007314",
-                name = "CUENTA DE AHORROS",
-                number = "NR 112000731",
-                type = "AHORRO",
-                balance = 1250.75,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov5",
-                        amount = 500.00,
-                        description = "DEPOSITO INICIAL",
-                        date = "01 Oct 2019",
-                        type = MovementType.DEPOSIT,
-                        currencySymbol = "Bs."
-                    )
-                )
-            ),
-            Account(
-                id = "1120007313",
-                name = "CUENTA DE AHORROS",
-                number = "NR 112000731",
-                type = "AHORRO",
-                balance = 1250.75,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov5",
-                        amount = 500.00,
-                        description = "DEPOSITO INICIAL",
-                        date = "01 Oct 2019",
-                        type = MovementType.DEPOSIT,
-                        currencySymbol = "Bs."
-                    )
-                )
-            ),
-            Account(
-                id = "1120007312",
-                name = "CUENTA DE AHORROS",
-                number = "NR 112000731",
-                type = "AHORRO",
-                balance = 1250.75,
-                currency = "Bs.",
-                movements = listOf(
-                    Movement(
-                        id = "mov5",
-                        amount = 500.00,
-                        description = "DEPOSITO INICIAL",
-                        date = "01 Oct 2019",
-                        type = MovementType.DEPOSIT,
-                        currencySymbol = "Bs."
-                    )
-                )
+                }
             )
-        )
-
-        return (mockData)
-
-
+        }
     }
 }

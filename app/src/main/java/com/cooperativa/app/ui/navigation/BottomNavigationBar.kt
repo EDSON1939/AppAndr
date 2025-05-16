@@ -65,13 +65,13 @@ fun BottomNavigationBar(
             icon = {
                 Icon(
                     imageVector = Icons.Default.PieChart,
-                    contentDescription = "Aportes",
+                    contentDescription = "Certificados",
                     tint = if (selectedTab == 2) PrimaryBlue else TextSecondary
                 )
             },
             label = {
                 Text(
-                    "Aportes",
+                    "Certificados",
                     color = if (selectedTab == 2) PrimaryBlue else TextSecondary
                 )
             },

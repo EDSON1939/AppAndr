@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -83,6 +84,17 @@ fun AccountAndMovements(
     val uiState by viewModel.uiState.collectAsState()
     var selectedAccountId by remember { mutableStateOf<String?>(null) }
     var selectedTab by remember { mutableStateOf(1) }
+
+
+    fun tabToTipo(tab: Int): Int = when(tab) {
+        0 -> 1  // AHORRO
+        1 -> 2  // CREDITO
+        2 -> 3  // TODOS (o 3 si quisieras CERTIFICADO)
+        else -> 0
+    }
+    LaunchedEffect(selectedTab) {
+        viewModel.loadAccounts(tabToTipo(selectedTab))
+    }
 
     Scaffold(
         topBar = {
@@ -110,7 +122,7 @@ fun AccountAndMovements(
                     val filteredAccounts = when(selectedTab) {
                         0 -> accounts.filter { it.type == "AHORRO" }
                         1 -> accounts.filter { it.type == "CREDITO" }
-                        2 -> accounts.filter { it.type == "APORTE" }
+                        2 -> accounts.filter { it.type == "CERTIFICADO" }
                         else -> accounts
                     }
 
@@ -142,6 +154,8 @@ fun AccountAndMovements(
 
 
 
+
+
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ModernAccountCard(
@@ -169,65 +183,99 @@ fun ModernAccountCard(
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
 
-            // Descripción general
+            // Fila 1: Descripción
             Text(
                 text = account.name.uppercase(),
-                style = MaterialTheme.typography.labelMedium,
                 fontSize = 13.sp,
                 color = subTextColor
             )
 
             Spacer(Modifier.height(4.dp))
 
-            // Número de cuenta
+            // Fila 2: Número de cuenta
             Text(
                 text = account.number,
-                style = MaterialTheme.typography.titleMedium,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
                 color = textColor
             )
 
             Spacer(Modifier.height(12.dp))
 
-            // Parte inferior: detalles y saldo
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    if (account.type == "CREDITO") {
+            if (account.type == "CREDITO") {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    // IZQUIERDA: Monto otorgado
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Monto otorgado: 855555555",
+                            text = "Monto otorgado:",
                             fontSize = 12.sp,
                             color = subTextColor
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Fecha proximo pago: Enero 15 2025",
+                            text = "${account.currency} ${account.montoOtorgado}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
+                        )
+                    }
+
+                    // DERECHA: Saldo Deuda
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text(
+                            text = "Saldo",
                             fontSize = 12.sp,
                             color = subTextColor
+                        )
+                        Text(
+                            text = "Bs. ${account.balance}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
                         )
                     }
                 }
 
-                Column(horizontalAlignment = Alignment.End) {
+
+                Spacer(Modifier.height(8.dp))
+
+                // Fila 4: Fecha próximo pago | Próximo monto a pagar
+                Row(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = if (account.type == "CREDITO") "Monto próximo pago" else "Saldo",
+                        text = "Fecha próximo pago: ${account.fechaProx}",
                         fontSize = 12.sp,
-                        color = subTextColor
+                        color = subTextColor,
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = "Bs. ${account.balance}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
-                    )
+
+                }
+
+            } else {
+                // --- PARA AHORRO / APORTE ---
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "Saldo",
+                            fontSize = 12.sp,
+                            color = subTextColor
+                        )
+                        Text(
+                            text = "Bs. ${account.balance}",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
+                        )
+                    }
                 }
             }
 
-            // — Detalle expandible con últimos movimientos
+            // --- Detalle expandible con movimientos ---
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = fadeIn(tween(300)) + expandVertically(tween(300)),
@@ -263,7 +311,11 @@ fun ModernAccountCard(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("Ver todos", fontSize = 13.sp)
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Icon(Icons.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Icon(
+                                    Icons.Default.ArrowForward,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
                             }
                         }
                     }
@@ -304,8 +356,6 @@ fun ModernAccountCard(
         }
     }
 }
-
-
 
 /*
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)

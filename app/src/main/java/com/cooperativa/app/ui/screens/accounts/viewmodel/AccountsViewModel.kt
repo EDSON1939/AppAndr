@@ -24,14 +24,14 @@ class AccountsViewModel @Inject constructor(
     val selectedAccount: StateFlow<Account?> = _selectedAccount
 
     init {
-        loadAccounts()
+        loadAccounts(1)
     }
 
-    fun loadAccounts() {
+    fun loadAccounts(tipo: Int) {
         viewModelScope.launch {
             _uiState.value = AccountsUiState.Loading
             try {
-                val accounts = accountsService.getAccounts()
+                val accounts = accountsService.getAccounts(tipo)
                 _uiState.value = AccountsUiState.Success(
                     AccountsData(
                         accounts = accounts,
